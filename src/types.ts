@@ -75,6 +75,11 @@ export type AlertInput = {
   name?: string;
 };
 
+export type AlertUpdateInput = {
+  name?: string;
+  is_active?: boolean;
+};
+
 export type ListProductsInput = {
   per_page?: number;
   starting_after?: string;

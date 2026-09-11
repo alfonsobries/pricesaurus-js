@@ -24,6 +24,16 @@ describe("Pricesaurus", () => {
     expect(() => new Pricesaurus({ token: "" })).toThrowError(/developer token/);
   });
 
+  it("rejects a blank alert or product id", async () => {
+    const api = new Pricesaurus({ token: "ps_live_test", fetch: vi.fn() });
+
+    await expect(api.alerts("  ")).rejects.toMatchObject({ code: "invalid_id" });
+    await expect(api.updateAlert("", { is_active: false })).rejects.toMatchObject({
+      code: "invalid_id",
+    });
+    await expect(api.deleteAlert("")).rejects.toMatchObject({ code: "invalid_id" });
+  });
+
   it("trims the token and strips a trailing slash on the base URL", async () => {
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse(200, { data: { plan: "plus" } }));
     const api = new Pricesaurus({
@@ -101,7 +111,10 @@ describe("Pricesaurus", () => {
       .mockResolvedValueOnce(jsonResponse(200, { data: [{ id: "prod-1" }] }))
       .mockResolvedValueOnce(jsonResponse(200, { data: { id: "prod-1" } }))
       .mockResolvedValueOnce(jsonResponse(202, { data: { id: "prod-1", status: "queued" } }))
-      .mockResolvedValueOnce(jsonResponse(201, { data: { condition: "drops" } }));
+      .mockResolvedValueOnce(jsonResponse(201, { data: { condition: "drops" } }))
+      .mockResolvedValueOnce(jsonResponse(200, { data: [{ id: "alert-1" }] }))
+      .mockResolvedValueOnce(jsonResponse(200, { data: { id: "alert-1", is_active: false } }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
 
     const api = new Pricesaurus({ token: "ps_live_test", fetch: fetchMock });
     const url = "https://shop.example.test/p";
@@ -115,6 +128,9 @@ describe("Pricesaurus", () => {
     await api.product("prod-1");
     await api.check("prod-1");
     await api.alert("prod-1", { condition: "drops" });
+    await api.alerts("prod-1");
+    await api.updateAlert("alert-1", { is_active: false });
+    await api.deleteAlert("alert-1");
 
     const urls = fetchMock.mock.calls.map((call) => call[0] as string);
     expect(urls).toEqual([
@@ -125,7 +141,15 @@ describe("Pricesaurus", () => {
       "https://pricesaurus.com/api/v1/products/prod-1",
       "https://pricesaurus.com/api/v1/products/prod-1/checks",
       "https://pricesaurus.com/api/v1/products/prod-1/alerts",
+      "https://pricesaurus.com/api/v1/products/prod-1/alerts",
+      "https://pricesaurus.com/api/v1/alerts/alert-1",
+      "https://pricesaurus.com/api/v1/alerts/alert-1",
     ]);
+    expect(fetchMock.mock.calls[8]?.[1]).toMatchObject({
+      method: "PATCH",
+      body: JSON.stringify({ is_active: false }),
+    });
+    expect(fetchMock.mock.calls[9]?.[1]).toMatchObject({ method: "DELETE" });
   });
 
   it("throws a typed error on 401", async () => {

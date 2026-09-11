@@ -4,6 +4,7 @@ export type {
   Account,
   Alert,
   AlertInput,
+  AlertUpdateInput,
   Availability,
   Envelope,
   ExtractInput,
