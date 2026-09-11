@@ -7,6 +7,12 @@ Usage:
   pricesaurus extract <url>
   pricesaurus watch <url>
   pricesaurus me
+  pricesaurus products
+  pricesaurus alerts <product-id>
+  pricesaurus alert <product-id> <drops|below|above> [threshold]
+  pricesaurus pause <alert-id>
+  pricesaurus resume <alert-id>
+  pricesaurus delete-alert <alert-id>
 
 Env:
   PRICESAURUS_TOKEN      developer Bearer token from /api-keys
@@ -14,6 +20,10 @@ Env:
 
 Docs: https://pricesaurus.com/developers
 `;
+
+const CONDITIONS = ["drops", "below", "above"] as const;
+
+type Condition = (typeof CONDITIONS)[number];
 
 export type RunInput = {
   argv: string[];
@@ -28,7 +38,7 @@ export type RunResult = {
 };
 
 export const run = async (input: RunInput): Promise<RunResult> => {
-  const [command, url] = input.argv;
+  const [command, ...args] = input.argv;
 
   if (command === undefined || command === "--help" || command === "-h") {
     return {
@@ -55,7 +65,7 @@ export const run = async (input: RunInput): Promise<RunResult> => {
   });
 
   try {
-    const result = await dispatch(api, command, url);
+    const result = await dispatch(api, command, args);
 
     return { code: 0, stdout: `${JSON.stringify(result, null, 2)}\n`, stderr: "" };
   } catch (error) {
@@ -69,30 +79,89 @@ export const run = async (input: RunInput): Promise<RunResult> => {
   }
 };
 
-const dispatch = async (
-  api: Pricesaurus,
-  command: string,
-  url: string | undefined,
-): Promise<unknown> => {
+const dispatch = async (api: Pricesaurus, command: string, args: string[]): Promise<unknown> => {
   if (command === "me") {
     return api.me();
   }
 
   if (command === "extract") {
-    if (url === undefined) {
-      throw new PricesaurusError(0, "usage", "pricesaurus extract <url>");
-    }
-
-    return api.extract({ url });
+    return api.extract({ url: requireArg(args[0], "pricesaurus extract <url>") });
   }
 
   if (command === "watch") {
-    if (url === undefined) {
-      throw new PricesaurusError(0, "usage", "pricesaurus watch <url>");
-    }
+    return api.watch({ url: requireArg(args[0], "pricesaurus watch <url>") });
+  }
 
-    return api.watch({ url });
+  if (command === "products") {
+    return api.products();
+  }
+
+  if (command === "alerts") {
+    return api.alerts(requireArg(args[0], "pricesaurus alerts <product-id>"));
+  }
+
+  if (command === "alert") {
+    return createAlert(api, args);
+  }
+
+  if (command === "pause") {
+    return api.updateAlert(requireArg(args[0], "pricesaurus pause <alert-id>"), {
+      is_active: false,
+    });
+  }
+
+  if (command === "resume") {
+    return api.updateAlert(requireArg(args[0], "pricesaurus resume <alert-id>"), {
+      is_active: true,
+    });
+  }
+
+  if (command === "delete-alert") {
+    await api.deleteAlert(requireArg(args[0], "pricesaurus delete-alert <alert-id>"));
+
+    return { deleted: true };
   }
 
   throw new PricesaurusError(0, "usage", USAGE.trimEnd());
 };
+
+const createAlert = (api: Pricesaurus, args: string[]): Promise<unknown> => {
+  const productId = args[0];
+  const condition = args[1];
+  const rawThreshold = args[2];
+
+  if (productId === undefined || condition === undefined || !isCondition(condition)) {
+    throw new PricesaurusError(
+      0,
+      "usage",
+      "pricesaurus alert <product-id> <drops|below|above> [threshold]",
+    );
+  }
+
+  if (condition === "drops") {
+    return api.alert(productId, { condition });
+  }
+
+  const threshold = Number(rawThreshold);
+
+  if (rawThreshold === undefined || !Number.isFinite(threshold)) {
+    throw new PricesaurusError(
+      0,
+      "usage",
+      "pricesaurus alert <product-id> below|above <threshold>",
+    );
+  }
+
+  return api.alert(productId, { condition, threshold });
+};
+
+const requireArg = (value: string | undefined, usage: string): string => {
+  if (value === undefined || value.trim() === "") {
+    throw new PricesaurusError(0, "usage", usage);
+  }
+
+  return value;
+};
+
+const isCondition = (value: string): value is Condition =>
+  (CONDITIONS as readonly string[]).includes(value);

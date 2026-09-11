@@ -30,6 +30,9 @@ const api = new Pricesaurus({ token: process.env.PRICESAURUS_TOKEN ?? "" });
 
 const snapshot = await api.extract({ url: "https://www.amazon.com/dp/B00CH9QWOU" });
 const product = await api.watch({ url: "https://www.amazon.com/dp/B00CH9QWOU" });
+const created = await api.alert(product.data.id, { condition: "drops" });
+await api.alerts(product.data.id);
+await api.updateAlert(created.data.id ?? "", { is_active: false });
 const account = await api.me();
 ```
 
@@ -47,6 +50,9 @@ Mutating calls accept `{ idempotencyKey }` so a retry does not create a second p
 | `product(id)`                                        | `GET /products/{id}`         |
 | `check(id)`                                          | `POST /products/{id}/checks` |
 | `alert(productId, { condition, threshold?, name? })` | `POST /products/{id}/alerts` |
+| `alerts(productId)`                                  | `GET /products/{id}/alerts`  |
+| `updateAlert(id, { name?, is_active? })`             | `PATCH /alerts/{id}`         |
+| `deleteAlert(id)`                                    | `DELETE /alerts/{id}`        |
 | `me()`                                               | `GET /me`                    |
 
 `condition` is `drops`, `below`, or `above`. Responses are `{ data, meta? }`. Types ship with the package.
@@ -82,6 +88,12 @@ export PRICESAURUS_TOKEN=ps_live_...
 pnpm exec pricesaurus extract https://www.amazon.com/dp/B00CH9QWOU
 pnpm exec pricesaurus watch https://www.amazon.com/dp/B00CH9QWOU
 pnpm exec pricesaurus me
+pnpm exec pricesaurus products
+pnpm exec pricesaurus alerts <product-id>
+pnpm exec pricesaurus alert <product-id> drops
+pnpm exec pricesaurus pause <alert-id>
+pnpm exec pricesaurus resume <alert-id>
+pnpm exec pricesaurus delete-alert <alert-id>
 ```
 
 ```bash

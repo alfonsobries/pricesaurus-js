@@ -63,6 +63,52 @@ describe("run", () => {
     expect(watch.code).toBe(0);
   });
 
+  it("lists products and manages alerts", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(200, { data: [{ id: "prod-1" }] }))
+      .mockResolvedValueOnce(jsonResponse(200, { data: [{ id: "alert-1" }] }))
+      .mockResolvedValueOnce(jsonResponse(201, { data: { id: "alert-1" } }))
+      .mockResolvedValueOnce(jsonResponse(201, { data: { id: "alert-2" } }))
+      .mockResolvedValueOnce(jsonResponse(200, { data: { id: "alert-1", is_active: false } }))
+      .mockResolvedValueOnce(jsonResponse(200, { data: { id: "alert-1", is_active: true } }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+
+    const env = { PRICESAURUS_TOKEN: "ps_live_test" };
+
+    expect((await run({ argv: ["products"], env, fetch: fetchMock })).code).toBe(0);
+    expect((await run({ argv: ["alerts", "prod-1"], env, fetch: fetchMock })).code).toBe(0);
+    expect((await run({ argv: ["alert", "prod-1", "drops"], env, fetch: fetchMock })).code).toBe(0);
+    expect(
+      (await run({ argv: ["alert", "prod-1", "below", "9.99"], env, fetch: fetchMock })).code,
+    ).toBe(0);
+    expect((await run({ argv: ["pause", "alert-1"], env, fetch: fetchMock })).code).toBe(0);
+    expect((await run({ argv: ["resume", "alert-1"], env, fetch: fetchMock })).code).toBe(0);
+
+    const deleted = await run({ argv: ["delete-alert", "alert-1"], env, fetch: fetchMock });
+    expect(deleted.code).toBe(0);
+    expect(deleted.stdout).toContain('"deleted": true');
+  });
+
+  it("rejects alert commands with missing arguments", async () => {
+    const env = { PRICESAURUS_TOKEN: "ps_live_test" };
+
+    await expect(run({ argv: ["alerts"], env })).resolves.toMatchObject({
+      code: 1,
+      stderr: "usage: pricesaurus alerts <product-id>\n",
+    });
+    await expect(run({ argv: ["alert", "prod-1"], env })).resolves.toMatchObject({
+      code: 1,
+    });
+    await expect(run({ argv: ["alert", "prod-1", "below"], env })).resolves.toMatchObject({
+      code: 1,
+      stderr: "usage: pricesaurus alert <product-id> below|above <threshold>\n",
+    });
+    await expect(run({ argv: ["pause"], env })).resolves.toMatchObject({ code: 1 });
+    await expect(run({ argv: ["resume"], env })).resolves.toMatchObject({ code: 1 });
+    await expect(run({ argv: ["delete-alert"], env })).resolves.toMatchObject({ code: 1 });
+  });
+
   it("rejects extract and watch without a URL", async () => {
     const env = { PRICESAURUS_TOKEN: "ps_live_test" };
 

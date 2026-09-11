@@ -3,6 +3,7 @@ import type {
   Account,
   Alert,
   AlertInput,
+  AlertUpdateInput,
   Envelope,
   ExtractInput,
   Job,
@@ -76,12 +77,42 @@ export class Pricesaurus {
     return this.request("POST", `/products/${id}/checks`, undefined, options);
   }
 
-  alert(
+  async alert(
     productId: string,
     input: AlertInput,
     options: RequestOptions = {},
   ): Promise<Envelope<Alert>> {
+    this.requireId(productId, "product");
+
     return this.request("POST", `/products/${productId}/alerts`, input, options);
+  }
+
+  async alerts(productId: string, options: RequestOptions = {}): Promise<Envelope<Alert[]>> {
+    this.requireId(productId, "product");
+
+    return this.request("GET", `/products/${productId}/alerts`, undefined, options);
+  }
+
+  async updateAlert(
+    id: string,
+    input: AlertUpdateInput,
+    options: RequestOptions = {},
+  ): Promise<Envelope<Alert>> {
+    this.requireId(id, "alert");
+
+    return this.request("PATCH", `/alerts/${id}`, input, options);
+  }
+
+  async deleteAlert(id: string, options: RequestOptions = {}): Promise<void> {
+    this.requireId(id, "alert");
+
+    await this.request("DELETE", `/alerts/${id}`, undefined, options);
+  }
+
+  private requireId(id: string, kind: string): void {
+    if (id.trim() === "") {
+      throw new PricesaurusError(0, "invalid_id", `A ${kind} id is required.`);
+    }
   }
 
   private requireUrl(url: string): void {
@@ -133,10 +164,18 @@ export class Pricesaurus {
       throw new PricesaurusError(response.status, error.code, error.message, error.retryable);
     }
 
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
     return payload as T;
   }
 
   private async readJson(response: Response): Promise<unknown> {
+    if (response.status === 204) {
+      return null;
+    }
+
     try {
       return await response.json();
     } catch {
