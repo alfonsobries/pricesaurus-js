@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Watch API docs
+    url: https://pricesaurus.com/developers
+    about: Authentication, OpenAPI, and product docs

@@ -1,0 +1,68 @@
+{
+  "name": "pricesaurus",
+  "version": "0.1.0",
+  "description": "Official TypeScript SDK and CLI for the Pricesaurus Watch API. Extract a product URL, watch the price, set an alert.",
+  "license": "MIT",
+  "author": "Alfonso Bribiesca <alfonso@pricesaurus.com>",
+  "homepage": "https://pricesaurus.com/developers",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alfonsobries/pricesaurus-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alfonsobries/pricesaurus-js/issues"
+  },
+  "keywords": [
+    "pricesaurus",
+    "price-tracker",
+    "watch-api",
+    "alerts",
+    "sdk"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "pricesaurus": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@10.18.3",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "prepublishOnly": "pnpm typecheck && pnpm test && pnpm build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.5.2",
+    "@vitest/coverage-v8": "^3.2.7",
+    "eslint": "^10.10.0",
+    "prettier": "^3.9.6",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.70.0",
+    "vitest": "^3.2.4"
+  }
+}
