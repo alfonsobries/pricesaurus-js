@@ -1,11 +1,11 @@
-# pricesaurus
+# Pricesaurus JS
 
 [![CI](https://github.com/alfonsobries/pricesaurus-js/actions/workflows/ci.yml/badge.svg)](https://github.com/alfonsobries/pricesaurus-js/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/pricesaurus.svg)](https://www.npmjs.com/package/pricesaurus)
 [![node](https://img.shields.io/node/v/pricesaurus.svg)](https://www.npmjs.com/package/pricesaurus)
-[![license](https://img.shields.io/npm/l/pricesaurus.svg)](LICENSE)
+[![license](https://img.shields.io/github/license/alfonsobries/pricesaurus-js.svg)](LICENSE)
 
-TypeScript SDK and CLI for the [Pricesaurus Watch API](https://pricesaurus.com/developers). Paste a product URL, read the price, watch it, set an alert.
+Official Node.js SDK and CLI for the [Pricesaurus Watch API](https://pricesaurus.com/developers). Paste a product URL, read the price, watch it, set an alert.
 
 Requires a [Plus or Max](https://pricesaurus.com/pricing) account and a Bearer token from [API keys](https://pricesaurus.com/api-keys).
 
