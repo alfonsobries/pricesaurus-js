@@ -1,6 +1,6 @@
 {
   "name": "pricesaurus",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Official TypeScript SDK and CLI for the Pricesaurus Watch API. Extract a product URL, watch the price, set an alert.",
   "license": "MIT",
   "author": "Alfonso Bribiesca <alfonso@pricesaurus.com>",
@@ -36,7 +36,10 @@
     "dist",
     "LICENSE",
     "README.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "plugin.json",
+    "mcp.json",
+    "skills"
   ],
   "engines": {
     "node": ">=20"
