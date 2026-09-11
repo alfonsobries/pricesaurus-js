@@ -1,0 +1,15 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "pricesaurus",
+  "version": "0.2.0",
+  "description": "Watch product page URLs and set price alerts through the Pricesaurus Watch API.",
+  "author": {
+    "name": "Pricesaurus",
+    "email": "hello@pricesaurus.com",
+    "url": "https://pricesaurus.com"
+  },
+  "homepage": "https://pricesaurus.com/developers",
+  "repository": "https://github.com/alfonsobries/pricesaurus-js",
+  "license": "MIT",
+  "keywords": ["pricesaurus", "price-alerts", "mcp", "watch-api"]
+}
